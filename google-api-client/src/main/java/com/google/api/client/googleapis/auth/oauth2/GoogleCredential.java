@@ -306,6 +306,11 @@ public class GoogleCredential extends Credential {
   private String serviceAccountUser;
 
   /**
+   * Quota Project is for quotas and billings.
+   */
+  private String quotaProject;
+
+  /**
    * Constructor with the ability to access protected resources, but not refresh tokens.
    *
    * <p>
@@ -336,6 +341,7 @@ public class GoogleCredential extends Credential {
       serviceAccountPrivateKey = builder.serviceAccountPrivateKey;
       serviceAccountPrivateKeyId = builder.serviceAccountPrivateKeyId;
       serviceAccountUser = builder.serviceAccountUser;
+      quotaProject = builder.quotaProject;
     }
   }
 
@@ -464,6 +470,11 @@ public class GoogleCredential extends Credential {
     return serviceAccountUser;
   }
 
+
+  public String getQuotaProject() {
+    return quotaProject;
+  }
+
   /**
    * {@link Beta} <br/>
    * Indicates whether the credential requires scopes to be specified by calling createScoped
@@ -561,6 +572,12 @@ public class GoogleCredential extends Credential {
      * flow or {@code null} for none.
      */
     String serviceAccountUser;
+
+    /**
+     * Quota Project is for quotas and billings. It will eventually be sent as a HTTP header as
+     * {@code x-goog-user-project}.
+     */
+    String quotaProject;
 
     public Builder() {
       super(BearerToken.authorizationHeaderAccessMethod());
@@ -811,6 +828,11 @@ public class GoogleCredential extends Credential {
       return this;
     }
 
+    public Builder setQuotaProject(String quotaProject) {
+      this.quotaProject = quotaProject;
+      return this;
+    }
+
     @Override
     public Builder setRequestInitializer(HttpRequestInitializer requestInitializer) {
       return (Builder) super.setRequestInitializer(requestInitializer);
@@ -848,6 +870,7 @@ public class GoogleCredential extends Credential {
     String clientId = (String) fileContents.get("client_id");
     String clientSecret = (String) fileContents.get("client_secret");
     String refreshToken = (String) fileContents.get("refresh_token");
+    String quotaProject = (String) fileContents.get("quota_project");
     if (clientId == null || clientSecret == null || refreshToken == null) {
       throw new IOException("Error reading user credential from stream, "
           + " expecting 'client_id', 'client_secret' and 'refresh_token'.");
@@ -857,6 +880,7 @@ public class GoogleCredential extends Credential {
         .setClientSecrets(clientId, clientSecret)
         .setTransport(transport)
         .setJsonFactory(jsonFactory)
+        .setQuotaProject(quotaProject)
         .build();
     credential.setRefreshToken(refreshToken);
 
@@ -872,6 +896,7 @@ public class GoogleCredential extends Credential {
     String clientEmail = (String) fileContents.get("client_email");
     String privateKeyPem = (String) fileContents.get("private_key");
     String privateKeyId = (String) fileContents.get("private_key_id");
+    String quotaProject = (String) fileContents.get("quota_project");
     if (clientId == null || clientEmail == null || privateKeyPem == null
         || privateKeyId == null) {
       throw new IOException("Error reading service account credential from stream, "
@@ -888,7 +913,8 @@ public class GoogleCredential extends Credential {
         .setServiceAccountId(clientEmail)
         .setServiceAccountScopes(emptyScopes)
         .setServiceAccountPrivateKey(privateKey)
-        .setServiceAccountPrivateKeyId(privateKeyId);
+        .setServiceAccountPrivateKeyId(privateKeyId)
+        .setQuotaProject(quotaProject);
     String tokenUri = (String) fileContents.get("token_uri");
     if (tokenUri != null) {
       credentialBuilder.setTokenServerEncodedUrl(tokenUri);
